@@ -361,6 +361,15 @@ in
         description = "Environment variables used by Nix.";
       };
 
+      nixConfPath = mkOption {
+        type = types.string;
+        default = "nix/nix.conf";
+        description = ''
+          Path to the nix configuration file in /etc. The default is
+          /etc/nix/nix.conf.
+        '';
+      };
+
       # Not in NixOS module
       configureBuildUsers = mkOption {
         type = types.bool;
@@ -688,10 +697,10 @@ in
       ]
       ++ optional (config.programs.bash.completion.enable) pkgs.nix-bash-completions;
 
-    environment.etc."nix/nix.conf".source = nixConf;
+    environment.etc."${config.nixConfPath}".source = nixConf;
 
     # Not in NixOS module
-    environment.etc."nix/nix.conf".knownSha256Hashes = [
+    environment.etc."${config.nixConfPath}".knownSha256Hashes = [
       "7c2d80499b39256b03ee9abd3d6258343718306aca8d472c26ac32c9b0949093"  # official Nix installer
       "19299897fa312d9d32b3c968c2872dd143085aa727140cec51f57c59083e93b9"
       "c4ecc3d541c163c8fcc954ccae6b8cab28c973dc283fea5995c69aaabcdf785f"
@@ -820,7 +829,7 @@ in
 
     # Unrelated to use in NixOS module
     system.activationScripts.nix-daemon.text = mkIf cfg.useDaemon ''
-      if ! diff /etc/nix/nix.conf /run/current-system/etc/nix/nix.conf &> /dev/null || ! diff /etc/nix/machines /run/current-system/etc/nix/machines &> /dev/null; then
+      if ! diff /etc/${config.nixConfPath} /run/current-system/etc/nix/nix.conf &> /dev/null || ! diff /etc/nix/machines /run/current-system/etc/nix/machines &> /dev/null; then
           echo "reloading nix-daemon..." >&2
           launchctl kill HUP system/org.nixos.nix-daemon
       fi
